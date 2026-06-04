@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apeejay Nexus Saltlake Portal</title>
+    <style>
+        * { box-sizing: border-box; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #141414; }
+        ::-webkit-scrollbar-thumb { background: #2d2d2d; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4a5568; }
+    </style>
+</head>
+
+<body style="background-color: #121212; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0; font-family: sans-serif; padding: 20px 0; position: relative;">
+<button onclick="testConnection()">Test Connection</button>
+<script>
+    function testConnection() {
+        const ws = new WebSocket("ws://192.168.1.12:9005");
+        ws.onopen = () => alert("Connection Successful!");
+        ws.onerror = (e) => alert("Connection Failed! Check browser console.");
+    }
+</script>
+    <div id="top-right-nav" style="position: fixed; top: 20px; right: 20px; display: none; align-items: center; gap: 15px; z-index: 9999;">
+        <button onclick="handleLogout()" style="padding: 8px 14px; background-color: #2d2d2d; color: #a0aec0; border: 1px solid #4a5568; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: bold; height: fit-content;">Logout</button>
+        <div onclick="openUserProfileView()" title="View User Profile" style="cursor: pointer; border-radius: 50%; padding: 3px; background: linear-gradient(45deg, #e31e24, #3182ce); box-shadow: 0 0 10px rgba(49, 130, 206, 0.3);">
+            <img id="dashboard-pfp" src="" alt="PFP" style="width: 50px; height: 50px; border-radius: 50%; display: block; object-fit: cover; background-color: #4a5568;">
+        </div>
+    </div>
+
+    <div id="main-header" style="text-align: center; margin-bottom: 25px; padding: 0 20px;">
+        <h1 style="color: #e31e24; margin: 0 0 10px 0; font-size: 2.5rem; font-weight: bold;">Apeejay Nexus Saltlake</h1>
+        <p style="color: #e2e8f0; margin: 0 0 20px 0; font-size: 1.2rem; font-weight: 500;">Real-Time Student Hub</p>
+
+        <div id="app-nav-tabs" style="display: none; justify-content: center; gap: 10px; margin-top: 15px;">
+            <button id="tab-btn-dashboard" onclick="switchMainTab('dashboard')" style="padding: 10px 20px; background-color: #e31e24; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: 0.2s;">Chat Hub</button>
+            <button id="tab-btn-announcements" onclick="switchMainTab('announcements')" style="padding: 10px 20px; background-color: #1e1e1e; color: #a0aec0; border: 1px solid #2d2d2d; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: 0.2s;">Announcements</button>
+            <button id="tab-btn-bids" onclick="switchMainTab('bids')" style="padding: 10px 20px; background-color: #1e1e1e; color: #a0aec0; border: 1px solid #2d2d2d; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: 0.2s;">Bids</button>
+            <button id="tab-btn-find-work" onclick="switchMainTab('find-work')" style="padding: 10px 20px; background-color: #1e1e1e; color: #a0aec0; border: 1px solid #2d2d2d; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: 0.2s;">Find Work</button>
+        </div>
+    </div>
+
+    <div id="login-page" style="background-color: #1e1e1e; width: 100%; max-width: 400px; border-radius: 12px; padding: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); border: 1px solid #2d2d2d; display: block;">
+        <form onsubmit="handleLogin(event)">
+            <h3 style="color: #ffffff; margin-top: 0; margin-bottom: 25px; text-align: center; font-size: 1.4rem; border-bottom: 3px solid #e31e24; padding-bottom: 10px;">Portal Access</h3>
+            <div id="login-error-msg" style="display: none; background-color: rgba(227, 30, 36, 0.2); border: 1px solid #e31e24; color: #ff8a8a; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem; text-align: center; font-weight: bold;">❌ Incorrect password!</div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 6px; color: #a0aec0; font-weight: bold; font-size: 0.9rem;">Email ID</label>
+                <input type="email" id="login-email" required placeholder="student@apeejay.com" style="width: 100%; padding: 12px; border: 1px solid #4a5568; background-color: #2d2d2d; color: #ffffff; border-radius: 6px; font-size: 1rem; outline: none;">
+            </div>
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 6px; color: #a0aec0; font-weight: bold; font-size: 0.9rem;">Password</label>
+                <input type="password" id="login-password" required placeholder="••••••••" style="width: 100%; padding: 12px; border: 1px solid #4a5568; background-color: #2d2d2d; color: #ffffff; border-radius: 6px; font-size: 1rem; outline: none;">
+            </div>
+            <button type="submit" style="width: 100%; padding: 14px; background-color: #3182ce; color: white; border: none; border-radius: 6px; font-size: 1.1rem; font-weight: bold; cursor: pointer;">Log In</button>
+        </form>
+    </div>
+
+    <div id="profile-page" style="background-color: #1e1e1e; width: 100%; max-width: 450px; border-radius: 12px; padding: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); border: 1px solid #2d2d2d; display: none;">
+        <form onsubmit="handleProfile(event)">
+            <h3 style="color: #ffffff; margin-top: 0; margin-bottom: 20px; text-align: center; font-size: 1.4rem;">Setup Student Profile</h3>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 6px; color: #a0aec0; font-weight: bold; font-size: 0.9rem;">Full Name</label>
+                <input type="text" id="student-name" required placeholder="Enter your name" style="width: 100%; padding: 12px; border: 1px solid #4a5568; background-color: #2d2d2d; color: #ffffff; border-radius: 6px; font-size: 1rem; outline: none;">
+            </div>
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 6px; color: #a0aec0; font-weight: bold; font-size: 0.9rem;">Class</label>
+                <select id="student-class" required style="width: 100%; padding: 12px; border: 1px solid #4a5568; background-color: #2d2d2d; color: #ffffff; border-radius: 6px; font-size: 1rem; outline: none; cursor: pointer;">
+                    <option value="" disabled selected>Select class...</option>
+                    <option value="7">Class 7</option> <option value="8">Class 8</option> <option value="9">Class 9</option>
+                    <option value="10">Class 10</option> <option value="11">Class 11</option> <option value="12">Class 12</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 25px; border-top: 1px solid #2d2d2d; padding-top: 15px;">
+                <label style="display: block; margin-bottom: 12px; color: #a0aec0; font-weight: bold; font-size: 0.9rem;">Co-Curricular Clubs</label>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <label style="color: #ffffff; display: flex; align-items: center; cursor: pointer;"><input type="checkbox" class="club-choice" value="dancing" style="margin-right: 10px; width: 18px; height: 18px;"> Dancing Club</label>
+                    <label style="color: #ffffff; display: flex; align-items: center; cursor: pointer;"><input type="checkbox" class="club-choice" value="music" style="margin-right: 10px; width: 18px; height: 18px;"> Music Club</label>
+                    <label style="color: #ffffff; display: flex; align-items: center; cursor: pointer;"><input type="checkbox" class="club-choice" value="sports" style="margin-right: 10px; width: 18px; height: 18px;"> Sports Club</label>
+                </div>
+            </div>
+            <button type="submit" style="width: 100%; padding: 14px; background-color: #e31e24; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Save & Open Dashboard</button>
+        </form>
+    </div>
+
+    <div id="dashboard-page" style="width: 100%; max-width: 900px; padding: 20px; display: none;">
+        <div style="background-color: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #2d2d2d; margin-bottom: 25px; text-align: center;">
+            <h2 id="dashboard-main-title" style="color: #ffffff; margin: 0 0 5px 0;">Student Hub Dashboard</h2>
+            <p id="welcome-user" style="color: #a0aec0; margin: 0; font-weight: bold;"></p>
+        </div>
+
+        <h3 style="color: #ffffff; margin-bottom: 15px; border-left: 4px solid #e31e24; padding-left: 10px;">Your Unlocked Rooms</h3>
+        <div id="rooms-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;">
+            <div id="room-class-7" style="display:none; background-color: #1e1e1e; border: 1px solid #4a5568; border-top: 5px solid #3182ce; padding: 20px; border-radius: 8px; color: white; text-align: center;"><h3>Class 7 Hub</h3><button onclick="enterChatRoom('class-7')" style="padding: 8px 16px; background-color: #3182ce; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Launch Chat</button></div>
+            <div id="room-class-8" style="display:none; background-color: #1e1e1e; border: 1px solid #4a5568; border-top: 5px solid #3182ce; padding: 20px; border-radius: 8px; color: white; text-align: center;"><h3>Class 8 Hub</h3><button onclick="enterChatRoom('class-8')" style="padding: 8px 16px; background-color: #3182ce; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Launch Chat</button></div>
+            <div id="room-class-9" style="display:none; background-color: #1e1e1e; border: 1px solid #4a5568; border-top: 5px solid #3182ce; padding: 20px; border-radius: 8px; color: white; text-align: center;"><h3>Class 9 Hub</h3><button onclick="enterChatRoom('class-9')" style="padding: 8px 16px; background-color: #3182ce; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Launch Chat</button></div>
+            <div id="room-class-10" style="display:none; background-color: #1e1e1e; border: 1px solid #4a5568; border-top: 5px solid #3182ce; padding: 20px; border-radius: 8px; color: white; text-align: center;"><h3>Class 10 Hub</h3><button onclick="enterChatRoom('class-10')" style="padding: 8px 16px; background-color: #3182ce; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Launch Chat</button></div>
+            <div id="room-class-11" style="display:none; background-color: #1e1e1e; border: 1px solid #4a5568; border-top: 5px solid #3182ce; padding: 20px; border-radius: 8px; color: white; text-align: center;"><h3>Class 11 Hub</h3><button onclick="enterChatRoom('class-11')" style="padding: 8px 16px; background-color: #3182ce; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Launch Chat</button></div>
+            <div id="room-class-12" style="display:none; background-color: #1e1e1e; border: 1px solid #4a5568; border-top: 5px solid #3182ce; padding: 20px; border-radius: 8px; color: white; text-align: center;"><h3>Class 12 Hub</h3><button onclick="enterChatRoom('class-12')" style="padding: 8px 16px; background-color: #3182ce; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Launch Chat</button></div>
+
+            <div id="room-dancing" style="display:none; background-color: #1e1e1e; border: 1px solid #4a5568; border-top: 5px solid #e31e24; padding: 20px; border-radius: 8px; color: white; text-align: center;"><h3>💃 Dancing Crew</h3><button onclick="enterChatRoom('dancing')" style="padding: 8px 16px; background-color: #e31e24; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Launch Chat</button></div>
+            <div id="room-music" style="display:none; background-color: #1e1e1e; border: 1px solid #4a5568; border-top: 5px solid #e31e24; padding: 20px; border-radius: 8px; color: white; text-align: center;"><h3>🎵 Music Lounge</h3><button onclick="enterChatRoom('music')" style="padding: 8px 16px; background-color: #e31e24; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Launch Chat</button></div>
+            <div id="room-sports" style="display:none; background-color: #1e1e1e; border: 1px solid #4a5568; border-top: 5px solid #e31e24; padding: 20px; border-radius: 8px; color: white; text-align: center;"><h3>⚽ Sports Center</h3><button onclick="enterChatRoom('sports')" style="padding: 8px 16px; background-color: #e31e24; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Launch Chat</button></div>
+        </div>
+    </div>
+
+    <div id="announcements-page" style="width: 100%; max-width: 900px; padding: 20px; display: none;">
+        <div style="background-color: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #2d2d2d; margin-bottom: 25px;">
+            <h2 style="color: #ffffff; margin: 0 0 15px 0; border-left: 4px solid #e31e24; padding-left: 10px;">Official Announcements</h2>
+            <div id="announcement-admin-box" style="display: none; background-color: #141414; padding: 15px; border: 1px dashed #e31e24; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="color: #e31e24; margin: 0 0 10px 0;">Host Console: Post New Announcement</h4>
+                <input type="text" id="announce-input-title" placeholder="Announcement Title" style="width: 100%; padding: 10px; background: #2d2d2d; border: 1px solid #4a5568; color: white; border-radius: 4px; margin-bottom: 10px; outline: none;">
+                <textarea id="announce-input-desc" placeholder="Write message details here..." style="width: 100%; height: 70px; padding: 10px; background: #2d2d2d; border: 1px solid #4a5568; color: white; border-radius: 4px; margin-bottom: 10px; outline: none; resize: none;"></textarea>
+                <button onclick="publishHostItem('announcements')" style="background: #e31e24; color: white; font-weight: bold; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Publish Board Bulletin</button>
+            </div>
+            <div id="announcements-feed" style="display: flex; flex-direction: column; gap: 15px;"></div>
+        </div>
+    </div>
+
+    <div id="bids-page" style="width: 100%; max-width: 900px; padding: 20px; display: none;">
+        <div style="background-color: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #2d2d2d; margin-bottom: 25px;">
+            <h2 style="color: #ffffff; margin: 0 0 15px 0; border-left: 4px solid #e31e24; padding-left: 10px;">Active Student Bids</h2>
+            <div id="bids-admin-box" style="display: none; background-color: #141414; padding: 15px; border: 1px dashed #e31e24; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="color: #e31e24; margin: 0 0 10px 0;">Host Console: Post New Bid Allocation Request</h4>
+                <input type="text" id="bid-input-title" placeholder="Bid/Project Name" style="width: 100%; padding: 10px; background: #2d2d2d; border: 1px solid #4a5568; color: white; border-radius: 4px; margin-bottom: 10px; outline: none;">
+                <input type="text" id="bid-input-tag" placeholder="Tag Status" style="width: 100%; padding: 10px; background: #2d2d2d; border: 1px solid #4a5568; color: white; border-radius: 4px; margin-bottom: 10px; outline: none;">
+                <button onclick="publishHostItem('bids')" style="background: #e31e24; color: white; font-weight: bold; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Publish Bid Requirement</button>
+            </div>
+            <div id="bids-feed" style="display: flex; flex-direction: column; gap: 15px;"></div>
+        </div>
+    </div>
+
+    <div id="find-work-page" style="width: 100%; max-width: 900px; padding: 20px; display: none;">
+        <div style="background-color: #1e1e1e; padding: 25px; border-radius: 12px; border: 1px solid #2d2d2d; margin-bottom: 25px;">
+            <h2 style="color: #ffffff; margin: 0 0 15px 0; border-left: 4px solid #e31e24; padding-left: 10px;">Available Assignments & Tasks</h2>
+            <div id="find-work-admin-box" style="display: none; background-color: #141414; padding: 15px; border: 1px dashed #e31e24; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="color: #e31e24; margin: 0 0 10px 0;">Host Console: Post New Assignment Opening</h4>
+                <input type="text" id="work-input-title" placeholder="Task Title" style="width: 100%; padding: 10px; background: #2d2d2d; border: 1px solid #4a5568; color: white; border-radius: 4px; margin-bottom: 10px; outline: none;">
+                <input type="text" id="work-input-meta" placeholder="Requirements text" style="width: 100%; padding: 10px; background: #2d2d2d; border: 1px solid #4a5568; color: white; border-radius: 4px; margin-bottom: 10px; outline: none;">
+                <button onclick="publishHostItem('find-work')" style="background: #e31e24; color: white; font-weight: bold; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Publish Task Work</button>
+            </div>
+            <div id="find-work-feed" style="display: flex; flex-direction: column; gap: 15px;"></div>
+        </div>
+    </div>
+
+    <div id="chat-page" style="width: 100%; max-width: 850px; background-color: #1e1e1e; border-radius: 12px; border: 1px solid #2d2d2d; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; flex-direction: column; overflow: hidden;">
+        <div style="background-color: #2d2d2d; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #3d3d3d;">
+            <div>
+                <h2 id="active-chat-title" style="color: #ffffff; margin: 0; font-size: 1.3rem; text-transform: capitalize;">Chat Room</h2>
+                <span id="chat-status" style="color: #ed8936; font-size: 0.85rem; font-weight: bold;">⌛ Connecting to Network Engine...</span>
+            </div>
+            <button onclick="leaveChatRoom()" style="padding: 8px 14px; background-color: #e31e24; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Back</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 3fr 1fr; min-height: 360px; background-color: #141414;">
+            <div id="chat-messages-box" style="height: 360px; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;"></div>
+            <div style="border-left: 1px solid #2d2d2d; background-color: #1a1a1a; padding: 15px; display: flex; flex-direction: column;">
+                <h4 style="color: #a0aec0; margin: 0 0 12px 0; font-size: 0.85rem; text-transform: uppercase; border-bottom: 1px solid #2d2d2d; padding-bottom: 5px;">🟢 Online (<span id="member-count">0</span>)</h4>
+                <div id="room-members-list" style="display: flex; flex-direction: column; gap: 10px; overflow-y: auto; font-size: 0.9rem; color: #e2e8f0;"></div>
+            </div>
+        </div>
+
+        <form onsubmit="dispatchMessage(event);" style="padding: 15px; background-color: #1e1e1e; display: flex; gap: 10px; border-top: 1px solid #2d2d2d;">
+            <input type="text" id="chat-input-field" placeholder="Share something with your team..." required style="flex: 1; padding: 12px; background-color: #2d2d2d; border: 1px solid #4a5568; border-radius: 6px; color: white; font-size: 1rem; outline: none;">
+            <button type="submit" style="padding: 0 20px; background-color: #3182ce; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem;">Send</button>
+        </form>
+    </div>
+
+    <div id="user-profile-view" style="width: 100%; max-width: 550px; background-color: #1e1e1e; border-radius: 12px; border: 1px solid #2d2d2d; padding: 30px; display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e31e24; padding-bottom: 15px; margin-bottom: 25px;">
+            <h2 style="color: #ffffff; margin: 0; font-size: 1.6rem;">User Profile</h2>
+            <button onclick="closeUserProfileView()" style="padding: 8px 14px; background-color: #4a5568; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Close</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 20px; background-color: #141414; padding: 15px; border-radius: 8px; border: 1px solid #2d2d2d; margin-bottom: 25px;">
+            <img id="profile-card-pfp" src="" alt="Avatar" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #3182ce;">
+            <div>
+                <h3 id="profile-card-name" style="color: #ffffff; margin: 0 0 5px 0; font-size: 1.25rem;">Student Name</h3>
+                <p id="profile-card-email" style="color: #a0aec0; margin: 0 0 3px 0; font-size: 0.95rem;">email@apeejay.com</p>
+                <span id="profile-card-class" style="background-color: #e31e24; color: white; font-size: 0.8rem; padding: 2px 8px; border-radius: 4px; font-weight: bold;">Class</span>
+            </div>
+        </div>
+        <h3 style="color: #ffffff; font-size: 1.1rem; margin-bottom: 12px;">Recent Portal Activities</h3>
+        <div id="activity-log-box" style="background-color: #141414; border: 1px solid #2d2d2d; border-radius: 8px; height: 200px; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
+
+    <script>
+        const HOST_EMAIL = "barid1.purkait@gmail.com";
+        const HOST_PASSWORD = "BARID14092010";
+
+        let userEmail = "";
+        let studentName = "";
+        let targetedRoom = "";
+        let isHostMode = false;
+        let activeRoomMembers = [];
+        let netSocket = null;
+
+        window.onload = function() {
+            if(!localStorage.getItem('nexus_feed_announcements')) {
+                localStorage.setItem('nexus_feed_announcements', JSON.stringify([
+                    { title: "Upcoming Mid-Term Assessments Schedule", desc: "Please note that the portal will display your specific class assessment charts starting next week." }
+                ]));
+            }
+            if(!localStorage.getItem('nexus_feed_bids')) {
+                localStorage.setItem('nexus_feed_bids', JSON.stringify([
+                    { title: "Project Leader: Science Exhibition Kit", desc: "Requested allocation by Class 11 Physics Wing", tag: "4 Active Offers" }
+                ]));
+            }
+            if(!localStorage.getItem('nexus_feed_find-work')) {
+                localStorage.setItem('nexus_feed_find-work', JSON.stringify([
+                    { title: "Graphic Designer for School Magazine Cover", desc: "Required Skills: Figma / Photoshop. Open to Class 9-12.", tag: "Urgent" }
+                ]));
+            }
+
+            const savedEmail = localStorage.getItem('nexus_userEmail');
+            const savedName = localStorage.getItem('nexus_studentName');
+            const loggedInStatus = localStorage.getItem('nexus_isLoggedIn');
+
+            if (loggedInStatus === "true" && savedEmail) {
+                userEmail = savedEmail;
+                if(userEmail === HOST_EMAIL) {
+                    isHostMode = true; studentName = "System Host/Admin"; buildDashboardUI("Host", []);
+                } else if(savedName) {
+                    studentName = savedName;
+                    buildDashboardUI(localStorage.getItem('nexus_studentClass'), JSON.parse(localStorage.getItem('nexus_studentClubs') || "[]"));
+                }
+            }
+            renderFeeds();
+        };
+
+        function logUserActivity(actionText) {
+            const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            let currentLogs = JSON.parse(localStorage.getItem('nexus_activity_logs') || "[]");
+            currentLogs.unshift({ time: timestamp, action: actionText });
+            localStorage.setItem('nexus_activity_logs', JSON.stringify(currentLogs));
+        }
+
+        function getGooglePfpUrl(email) {
+            if (!email) return "";
+            return `https://unavatar.io/google/${email.trim().toLowerCase()}?fallback=https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(studentName)}`;
+        }
+
+        function renderFeeds() {
+            const announceFeed = document.getElementById('announcements-feed'); announceFeed.innerHTML = "";
+            JSON.parse(localStorage.getItem('nexus_feed_announcements') || "[]").forEach(item => {
+                announceFeed.innerHTML += `<div style="background-color: #141414; padding: 15px; border-radius: 8px; border: 1px solid #2d2d2d;"><span style="color: #e31e24; font-size: 0.85rem; font-weight: bold;">📢 Announcement Notice</span><h3 style="color: #ffffff; margin: 5px 0 10px 0;">${item.title}</h3><p style="color: #a0aec0; margin: 0; font-size: 0.95rem;">${item.desc}</p></div>`;
+            });
+
+            const bidsFeed = document.getElementById('bids-feed'); bidsFeed.innerHTML = "";
+            JSON.parse(localStorage.getItem('nexus_feed_bids') || "[]").forEach(item => {
+                bidsFeed.innerHTML += `<div style="background-color: #141414; padding: 15px; border-radius: 8px; border: 1px solid #2d2d2d; display: flex; justify-content: space-between; align-items: center;"><div><h3 style="color: #ffffff; margin: 0 0 5px 0;">${item.title}</h3><p style="color: #a0aec0; margin: 0; font-size: 0.9rem;">${item.desc}</p></div><span style="background-color: #2d2d2d; color: #48bb78; font-weight: bold; padding: 6px 12px; border-radius: 6px;">${item.tag}</span></div>`;
+            });
+
+            const workFeed = document.getElementById('find-work-feed'); workFeed.innerHTML = "";
+            JSON.parse(localStorage.getItem('nexus_feed_find-work') || "[]").forEach(item => {
+                workFeed.innerHTML += `<div style="background-color: #141414; padding: 15px; border-radius: 8px; border: 1px solid #2d2d2d;"><div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><h3 style="color: #ffffff; margin: 0;">${item.title}</h3><span style="color: #ed8936; font-weight: bold;">${item.tag}</span></div><p style="color: #a0aec0; margin: 0 0 10px 0;">${item.desc}</p><button style="padding: 6px 12px; background-color: #3182ce; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">Apply Now</button></div>`;
+            });
+        }
+
+        function publishHostItem(type) {
+            if(!isHostMode) return;
+            if(type === 'announcements') {
+                let title = document.getElementById('announce-input-title').value.trim();
+                let desc = document.getElementById('announce-input-desc').value.trim();
+                if(!title || !desc) return;
+                let data = JSON.parse(localStorage.getItem('nexus_feed_announcements') || "[]");
+                data.unshift({title: title, desc: desc}); localStorage.setItem('nexus_feed_announcements', JSON.stringify(data));
+            }
+            renderFeeds(); logUserActivity(`Published item on ${type}.`);
+        }
+
+        function switchMainTab(targetTabId) {
+            ['dashboard', 'announcements', 'bids', 'find-work', 'chat-page', 'user-profile-view'].forEach(id => {
+                const el = document.getElementById(id === 'chat-page' || id === 'user-profile-view' ? id : id + '-page');
+                if(el) el.style.display = 'none';
+            });
+            document.getElementById('main-header').style.display = 'block';
+            document.getElementById(`${targetTabId}-page`).style.display = 'block';
+
+            ['dashboard', 'announcements', 'bids', 'find-work'].forEach(tabName => {
+                const btn = document.getElementById(`tab-btn-${tabName}`);
+                if(btn) {
+                    btn.style.backgroundColor = tabName === targetTabId ? '#e31e24' : '#1e1e1e';
+                    btn.style.color = tabName === targetTabId ? '#ffffff' : '#a0aec0';
+                }
+            });
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const emailInput = document.getElementById('login-email').value.trim().toLowerCase();
+            const passwordInput = document.getElementById('login-password').value;
+            const errorBanner = document.getElementById('login-error-msg');
+            errorBanner.style.display = 'none';
+
+            if (emailInput === HOST_EMAIL.toLowerCase()) {
+                if (passwordInput !== HOST_PASSWORD) { errorBanner.style.display = 'block'; return; }
+                isHostMode = true; userEmail = HOST_EMAIL; studentName = "System Host/Admin";
+                localStorage.setItem('nexus_userEmail', userEmail); localStorage.setItem('nexus_isLoggedIn', 'true');
+                buildDashboardUI("Host Area", []); return;
+            }
+
+            const storageKey = `nexus_userpass_${emailInput}`;
+            const existingPassword = localStorage.getItem(storageKey);
+            if (existingPassword && passwordInput !== existingPassword) { errorBanner.style.display = 'block'; return; }
+            if (!existingPassword) localStorage.setItem(storageKey, passwordInput);
+
+            isHostMode = false; userEmail = emailInput; localStorage.setItem('nexus_userEmail', userEmail);
+            const savedName = localStorage.getItem('nexus_studentName');
+            if (savedName) {
+                studentName = savedName; localStorage.setItem('nexus_isLoggedIn', 'true');
+                buildDashboardUI(localStorage.getItem('nexus_studentClass'), JSON.parse(localStorage.getItem('nexus_studentClubs') || "[]"));
+            } else {
+                document.getElementById('login-page').style.display = 'none'; document.getElementById('profile-page').style.display = 'block';
+            }
+        }
+
+        function handleProfile(e) {
+            e.preventDefault();
+            studentName = document.getElementById('student-name').value;
+            const chosenClass = document.getElementById('student-class').value;
+            const chosenClubs = [];
+            document.querySelectorAll('.club-choice').forEach(box => { if (box.checked) chosenClubs.push(box.value); });
+
+            localStorage.setItem('nexus_studentName', studentName);
+            localStorage.setItem('nexus_studentClass', chosenClass);
+            localStorage.setItem('nexus_studentClubs', JSON.stringify(chosenClubs));
+            localStorage.setItem('nexus_isLoggedIn', 'true');
+            buildDashboardUI(chosenClass, chosenClubs);
+        }
+
+        function buildDashboardUI(studentClass, studentClubs) {
+            document.getElementById('welcome-user').innerText = `${studentName} (${userEmail})`;
+            document.getElementById('dashboard-pfp').src = getGooglePfpUrl(userEmail);
+            document.getElementById('top-right-nav').style.display = 'flex';
+            document.getElementById('app-nav-tabs').style.display = 'flex';
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('profile-page').style.display = 'none';
+            switchMainTab('dashboard');
+
+            if (isHostMode) {
+                document.getElementById('dashboard-main-title').innerText = "Host Control Panel";
+                for (let i = 7; i <= 12; i++) document.getElementById(`room-class-${i}`).style.display = 'block';
+                document.getElementById('room-dancing').style.display = 'block'; document.getElementById('room-music').style.display = 'block'; document.getElementById('room-sports').style.display = 'block';
+                document.getElementById('announcement-admin-box').style.display = 'block';
+            } else {
+                document.getElementById('dashboard-main-title').innerText = "Student Hub Dashboard";
+                const classEl = document.getElementById(`room-class-${studentClass}`); if (classEl) classEl.style.display = 'block';
+                studentClubs.forEach(club => { const el = document.getElementById(`room-${club}`); if (el) el.style.display = 'block'; });
+            }
+        }
+
+        function openUserProfileView() {
+            document.getElementById('profile-card-name').innerText = studentName;
+            document.getElementById('profile-card-email').innerText = userEmail;
+            document.getElementById('profile-card-class').innerText = isHostMode ? "System Host" : "Class " + localStorage.getItem('nexus_studentClass');
+            document.getElementById('profile-card-pfp').src = getGooglePfpUrl(userEmail);
+            document.getElementById('main-header').style.display = 'none';
+            document.getElementById('user-profile-view').style.display = 'block';
+        }
+
+        function closeUserProfileView() {
+            document.getElementById('user-profile-view').style.display = 'none';
+            switchMainTab('dashboard');
+        }
+
+        function handleLogout() {
+            localStorage.setItem('nexus_isLoggedIn', 'false'); location.reload();
+        }
+
+        function displayBubble(name, email, text) {
+            const container = document.getElementById('chat-messages-box');
+            const row = document.createElement('div');
+            const isMe = email === userEmail;
+
+            row.style.alignSelf = isMe ? 'flex-end' : 'flex-start';
+            row.style.maxWidth = '75%';
+            row.style.backgroundColor = isMe ? '#3182ce' : '#2d2d2d';
+            row.style.color = 'white';
+            row.style.padding = '10px 14px';
+            row.style.borderRadius = isMe ? '12px 12px 0px 12px' : '12px 12px 12px 0px';
+            row.style.marginBottom = '5px';
+
+            row.innerHTML = `
+                <div style="font-size: 0.75rem; color: ${isMe ? '#bee3f8' : '#a0aec0'}; font-weight: bold; margin-bottom: 2px;">${name}</div>
+                <div style="font-size: 0.95rem; word-break: break-word;">${text}</div>
+            `;
+            container.appendChild(row); container.scrollTop = container.scrollHeight;
+        }
+
+        function refreshMembersSidebarView() {
+            const listContainer = document.getElementById('room-members-list');
+            const countDisplay = document.getElementById('member-count');
+            listContainer.innerHTML = '';
+
+            const uniqueMembers = []; const map = new Map();
+            for (const item of activeRoomMembers) {
+                if(!map.has(item.email)){ map.set(item.email, true); uniqueMembers.push(item); }
+            }
+            countDisplay.innerText = uniqueMembers.length;
+
+            uniqueMembers.forEach(member => {
+                const itemRow = document.createElement('div');
+                itemRow.style.display = 'flex'; itemRow.style.alignItems = 'center'; itemRow.style.gap = '8px';
+                const isHost = member.email === HOST_EMAIL || member.name.includes("Host");
+                itemRow.innerHTML = `<span style="font-size: 0.85rem;">${isHost?'🔑':'👤'}</span><span style="${isHost?'color: #e31e24; font-weight: bold;':'color: #ffffff;'}">${member.name}</span>`;
+                listContainer.appendChild(itemRow);
+            });
+        }
+
+        // =========================================================
+        // AUTOMATED DYNAMIC SAME-HOST DETECTION PROTOCOL
+        // =========================================================
+        function enterChatRoom(roomId) {
+            targetedRoom = roomId;
+            logUserActivity(`Entered Chat Room: ${roomId}`);
+
+            document.getElementById('main-header').style.display = 'none';
+            document.getElementById('dashboard-page').style.display = 'none';
+            document.getElementById('chat-page').style.display = 'flex';
+            document.getElementById('active-chat-title').innerText = roomId.replace('-', ' ') + " Room";
+            document.getElementById('chat-messages-box').innerHTML = '';
+
+            activeRoomMembers = [{ name: studentName, email: userEmail }];
+            refreshMembersSidebarView();
+
+            // GRAB WHATEVER ROUTE ADDR THE PHONE USED TO LOAD THE HTML
+            let detectedHost = window.location.hostname;
+            let protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+
+            if (!detectedHost || detectedHost === "index.html") {
+                detectedHost = "localhost";
+            }
+
+            // INSTANTLY SYNC TO PORT 8080 ON THAT SAME COMPUTER ENGINE
+            netSocket = new WebSocket(protocol + detectedHost + 'ws://192.168.1.12:9000');
+            const ws = new WebSocket('ws://192.168.1.12:9000');
+
+            netSocket.onopen = function() {
+                document.getElementById('chat-status').innerText = "● Network Server Connected";
+                document.getElementById('chat-status').style.color = "#48bb78";
+
+                netSocket.send(JSON.stringify({
+                    statusType: 'JOIN',
+                    room: targetedRoom,
+                    senderName: studentName,
+                    senderEmail: userEmail
+                }));
+            };
+
+            netSocket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+
+                if (data.statusType === 'JOIN') {
+                    activeRoomMembers.push({ name: data.senderName, email: data.senderEmail });
+                    refreshMembersSidebarView();
+                }
+                else if (data.statusType === 'REQUEST_PRESENCE') {
+                    netSocket.send(JSON.stringify({
+                        statusType: 'PRESENT',
+                        senderName: studentName,
+                        senderEmail: userEmail
+                    }));
+                }
+                else if (data.statusType === 'PRESENT') {
+                    activeRoomMembers.push({ name: data.senderName, email: data.senderEmail });
+                    refreshMembersSidebarView();
+                }
+                else if (data.statusType === 'LEAVE') {
+                    activeRoomMembers = activeRoomMembers.filter(m => m.email !== data.senderEmail);
+                    refreshMembersSidebarView();
+                }
+                else if (data.text) {
+                    displayBubble(data.senderName, data.senderEmail, data.text);
+                }
+            };
+
+            netSocket.onclose = function() {
+                document.getElementById('chat-status').innerText = "❌ Disconnected from Server Engine";
+                document.getElementById('chat-status').style.color = "#e31e24";
+            };
+        }
+
+        function leaveChatRoom() {
+            if (netSocket) { netSocket.close(); netSocket = null; }
+            activeRoomMembers = [];
+            document.getElementById('chat-page').style.display = 'none';
+            document.getElementById('main-header').style.display = 'block';
+            document.getElementById('dashboard-page').style.display = 'block';
+        }
+
+        function dispatchMessage(e) {
+            e.preventDefault();
+            const field = document.getElementById('chat-input-field');
+            const content = field.value.trim();
+            if (!content) return;
+
+            displayBubble(studentName, userEmail, content);
+
+            if (netSocket && netSocket.readyState === WebSocket.OPEN) {
+                netSocket.send(JSON.stringify({
+                    senderName: studentName,
+                    senderEmail: userEmail,
+                    text: content
+                }));
+            }
+            field.value = '';
+        }
+    </script>
+const ws = new WebSocket(`ws://${window.location.hostname}:9000`);
+
+    ws.onmessage = (event) => {
+        // Here you would call your original function that updates your chat/dashboard
+        console.log("Message received:", event.data);
+    };
+
+    function sendToNexus(data) {
+        // Replace 'data' with the variable your original code uses for sending
+        ws.send(JSON.stringify(data));
+    }
+</script>
+
+</body>
+</html>
